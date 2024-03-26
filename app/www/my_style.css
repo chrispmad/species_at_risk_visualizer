@@ -1,0 +1,49 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.skyblue-box {
+  background-color: #d6eaf8;
+}
+
+.bc_logo {
+  position:absolute;
+  top: -5%;
+  left: 83%;
+  width: 35vh;
+  height: 35vh;
+  background: url('https://compass.gww.gov.bc.ca/wp-content/uploads/2021/03/wiw-white-text.svg');
+  background-repeat: no-repeat;
+  background-size: contain;"
+}
+.swimming-fish {
+    position:absolute;
+    width:15vh;
+    height:17vh;
+    top:30vh;
+    left:120vh;
+    z-index:1000;
+    content: url('making_sculpin_png_trimmed.png');
+    mix-blend-mode: multiply;
+    animation: swim_in_circles 8s linear infinite;
+    transform-origin: 100px 80px;
+}
+
+@keyframes swim_in_circles {
+        0%{
+          transform: rotate(0deg);
+        }
+        50%{
+          transform: rotate(180deg);
+        }
+        100%{
+          transform: rotate(360deg);
+        }
+      }
+
+.loading_text {
+    position: absolute;
+    top: 60vh;
+    left: 130vh;
+    z-index: 1000;
+}

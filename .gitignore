@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.Rdata
+.httr-oauth
+.DS_Store
+.quarto
+**.html
+alternate_app_datasets/**
+*gpkg
+*Rproj
+*xlsx
+*csv
+*png.jpg
+*png.png

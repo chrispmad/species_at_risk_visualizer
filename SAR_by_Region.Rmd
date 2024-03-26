@@ -1,0 +1,391 @@
+---
+title: "Proof of Concept: Aquatic Species-at-Risk"
+subtitle: "by Natural Resource Region and District"
+author: "Aquatic Ecosystems Branch"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::downcute
+---
+
+```{css, echo=FALSE}
+
+.Wrap {
+  max-width: 100%;
+}
+
+.Content {
+  padding: 0 5px 0 10px;
+}
+
+.leaflet-popup-content {
+  width: 400px !important;
+}
+
+```
+
+```{r setup, include = F}
+# <style type="text/css">
+# .page-inner {
+#   padding: 10px 10px 20px 0px;
+# }
+# .book-body.fixed{
+# margin-left: 150px;
+# }
+# </style>
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = F)
+
+library(sf)
+library(tidyverse)
+library(leaflet)
+```
+
+```{r load_data}
+nr_r = bcmaps::nr_regions() |> 
+  sf::st_transform(crs = 4326) |> 
+  rmapshaper::ms_simplify()
+
+nr_d = bcmaps::nr_districts() |> 
+  sf::st_transform(crs = 4326) |> 
+  rmapshaper::ms_simplify()
+
+sar = sf::read_sf('app/www/species_ecosystems_at_risk_publically_available.gpkg') |> 
+  dplyr::mutate(TAX_CLASS = stringr::str_to_title(TAX_CLASS))
+
+unique_taxes = unique(sar$TAX_CLASS)
+unique_taxes = unique_taxes[order(unique_taxes)]
+
+wilson_sar = readr::read_csv('app/www/Aquatic_SAR_GregWilson.csv')
+```
+
+## Basic Data Description
+
+Using the Conservation Data Centre's <a href = 'https://catalogue.data.gov.bc.ca/dataset/species-and-ecosystems-at-risk-publicly-available-occurrences-cdc'>publically available species- and ecosystems-at-risk layer</a>, there are `r nrow(sar)` rows of SAR data if we include the following taxonomic classes: `r unique_taxes`
+
+```{r filter_sar}
+sar_f = sar |> 
+  dplyr::filter(TAX_CLASS %in% c('Amphibians','Bivalves','Lampreys','Ray-Finned Fishes')) 
+```
+
+After filtering for just Amphibians, Bivalves, Lampreys, and Ray-Finned Fishes, there are `r nrow(sar_f)` rows.
+
+```{r reproject_sar}
+sar_f = sf::st_transform(sar_f, 4326)
+```
+
+```{r sum_sar_by_region_and_district}
+sar_by_district = sar_f |> 
+  sf::st_join(nr_d |> dplyr::select(District = DISTRICT_NAME), 
+              st_intersects) |> 
+  st_drop_geometry() |> 
+  count(ENG_NAME, District) |> 
+  group_by(District) |> 
+  reframe(all_info = paste0(ENG_NAME, " (",n,")"),
+          total_n = sum(n)) |> 
+  group_by(District) |> 
+  summarise(all_info = paste0(all_info, collapse = ', '),
+            total_n = mean(total_n))
+  
+sar_by_region = sar_f |> 
+  sf::st_join(nr_r |> dplyr::select(Region = REGION_NAME), st_intersects) |> 
+  st_drop_geometry() |> 
+  count(ENG_NAME, Region) |> 
+  group_by(Region) |> 
+  reframe(all_info = paste0(ENG_NAME, " (",n,")"),
+          total_n = sum(n)) |> 
+  group_by(Region) |> 
+  summarise(all_info = paste0(all_info, collapse = ', '),
+            total_n = mean(total_n))
+```
+
+```{r add_greg_excel_data}
+wilson_sar_to_join = wilson_sar |> 
+  dplyr::mutate(nrs_region = dplyr::case_when(
+    str_detect(nrs_region, 'west') ~ 'West Coast Natural Resource Region',
+    str_detect(nrs_region, 'south') ~ 'South Coast Natural Resource Region',
+    str_detect(nrs_region, 'Thompson') ~ 'Thompson-Okanagan Natural Resource Region',
+    str_detect(nrs_region, 'Kootenay') ~ 'Kootenay-Boundary Natural Resource Region',
+    str_detect(nrs_region, 'Cariboo') ~ 'Cariboo Natural Resource Region',
+    str_detect(nrs_region, 'Omineca') ~ 'Omineca Natural Resource Region',
+    T ~ 'Not matched!'
+  )) |> 
+  dplyr::rename(Region = nrs_region) |> 
+  group_by(Region) |> 
+  summarise(across(everything(), \(x) paste0(x, collapse = '; '))) |> 
+  dplyr::mutate(across(status:key_areas_of_concern, \(x) str_remove_all(x, 'NA(; )?'))) |> 
+  dplyr::mutate(across(status:key_areas_of_concern, \(x) str_to_sentence(x)))
+
+sar_by_region = sar_by_region |> 
+  dplyr::left_join(wilson_sar_to_join)
+
+# Spatial match of regions and districts so that we can port Greg Wilson's excel data 
+# from the region scale to the districts (although it will be repeated.)
+
+district_region_lookup_table = nr_d |> 
+  dplyr::select(Region = REGION_ORG_UNIT_NAME,
+                District = DISTRICT_NAME) |> 
+  sf::st_drop_geometry()
+
+sar_by_district = sar_by_district |> 
+  dplyr::left_join(
+    wilson_sar_to_join |> 
+      left_join(district_region_lookup_table) |> 
+      dplyr::select(-Region)
+  )
+```
+
+## Interactive Map of Natural Resource Regions / Districts
+
+*Toggle between regions and districts by clicking the radio-buttons at the bottom-right!* *Click on the map shapes to access more detail*
+
+```{r organize_regions_and_districts_alphabetically}
+nr_r = nr_r |> 
+  dplyr::arrange(REGION_NAME)
+
+nr_d = nr_d |> 
+  dplyr::arrange(DISTRICT_NAME)
+```
+
+```{r make_leaflet_tables}
+district_table = leafpop::popupTable(
+  sar_by_district |> 
+    mutate(District = stringr::str_remove_all(District,
+                                              " Natural.*")) |> 
+    left_join(
+      sar_by_district |> 
+        mutate(District = stringr::str_remove_all(District,
+                                                " Natural.*")) |> 
+        tidyr::separate_longer_delim(all_info, delim = ', ') |> 
+        dplyr::count(District, name = 'distinct_SAR') |> 
+        dplyr::mutate(distinct_SAR = replace_na(distinct_SAR, 0))
+    ) |> 
+    dplyr::select(
+      `BCDC SAR` = all_info,
+      `BCDC # Records` = total_n,
+      `BCDC # Species` = distinct_SAR,
+      `Expert-ID SAR` = species_common_name_population,
+      Status = status,
+      `Major Watershed(s)` = major_watershed,
+      Threats = threats,
+      `Key Areas of Concern` = key_areas_of_concern
+    ),
+  className = 'table_wide'
+)
+
+region_table = leafpop::popupTable(
+  sar_by_region |> 
+    mutate(Region = stringr::str_remove_all(Region,
+                                              " Natural.*")) |> 
+    left_join(
+      sar_by_region |> 
+        mutate(Region = stringr::str_remove_all(Region,
+                                                " Natural.*")) |> 
+        tidyr::separate_longer_delim(all_info, delim = ', ') |> 
+        dplyr::count(Region, name = 'distinct_SAR') |> 
+        dplyr::mutate(distinct_SAR = replace_na(distinct_SAR, 0))
+    ) |> 
+    dplyr::select(
+      `BCDC SAR` = all_info,
+      `BCDC # Records` = total_n,
+      `BCDC # Species` = distinct_SAR,
+      `Expert-ID SAR` = species_common_name_population,
+      Status = status,
+      `Major Watershed(s)` = major_watershed,
+      Threats = threats,
+      `Key Areas of Concern` = key_areas_of_concern
+    ),
+  className = 'table_wide'
+)
+```
+
+```{r make_leaflet_colour_palettes}
+sar_col_pal = leaflet::colorFactor(
+  palette = 'Spectral',
+  domain = sar_f$TAX_CLASS
+)
+
+nr_r = nr_r |> 
+  left_join(
+    sar_by_region |> 
+  tidyr::separate_longer_delim(all_info, delim = ', ') |> 
+  dplyr::count(Region, name = 'distinct_SAR') |> 
+    dplyr::rename(REGION_NAME = Region)
+  )
+
+nr_d = nr_d |> 
+  left_join(
+    sar_by_district |> 
+  tidyr::separate_longer_delim(all_info, delim = ', ') |> 
+  dplyr::count(District, name = 'distinct_SAR') |> 
+    dplyr::rename(DISTRICT_NAME = District)
+  ) |> 
+  dplyr::mutate(distinct_SAR = replace_na(distinct_SAR, 0))
+
+region_colour_palette = colorNumeric(
+  palette = 'Purples',
+  domain = nr_r$distinct_SAR
+)
+
+district_colour_palette = colorNumeric(
+  palette = 'Purples',
+  domain = nr_d$distinct_SAR
+)
+```
+
+```{r leaflet_map, fig.width=12, fig.align='center', fig.height = 7}
+leaflet() |> 
+  addTiles(group = 'OSM') |> 
+  addProviderTiles(provider = providers$CartoDB,
+                   group = 'cartoDB') |> 
+  addPolygons(
+    color = 'black',
+    fillColor = ~region_colour_palette(distinct_SAR),
+    fillOpacity = 0.6,
+    label = ~paste0(REGION_NAME,": ",distinct_SAR," distinct SAR"),
+    popup = ~lapply(region_table, \(x) htmltools::HTML(x[!is.na(x) | x != ""])),
+    group = 'Regions',
+    weight = 2,
+    data = nr_r) |>
+  addPolygons(
+    color = 'black',
+    fillColor = ~district_colour_palette(distinct_SAR),
+    fillOpacity = 0.6,
+    label = ~paste0(DISTRICT_NAME,": ",distinct_SAR," distinct Aquatic SAR"),
+    popup = ~lapply(district_table, \(x) htmltools::HTML(x[!is.na(x) | x != ""])),
+    group = 'Districts',
+    weight = 2,
+    data = nr_d) |> 
+  addPolygons(
+    label = ~ENG_NAME,
+    color = ~sar_col_pal(TAX_CLASS),
+    fillColor = ~sar_col_pal(TAX_CLASS),
+    fillOpacity = 1,
+    weight = 2,
+    data = sar_f,
+    group = 'Aquatic SAR'
+  ) |> 
+  addLegend(
+    pal = sar_col_pal,
+    values = sar_f$TAX_CLASS
+  ) |> 
+  addLegend(
+    title = 'Number of \nDistinct \nAquatic SAR',
+    colors = c('white','#ad80cf','purple'),
+    values = c(1,9,18),
+    labels = c('few','moderate','many')
+  ) |> 
+  addLayersControl('bottomright',
+                   baseGroups = c('Regions','Districts'),
+                   overlayGroups = c('Aquatic SAR'),
+                   options = layersControlOptions(collapsed = F)) |> 
+  leaflet::hideGroup('nr_d') |> 
+  addScaleBar('bottomright') |> 
+  leaflet.extras::addResetMapButton() |> 
+  htmlwidgets::onRender("
+    function(el, x) {
+      this.on('baselayerchange', function(e) {
+        e.layer.bringToBack();
+      })
+    }
+  ")
+```
+
+## Interactive Tables {.tabset}
+
+```{r}
+library(DT)
+```
+
+### Region
+
+```{r data_table_region}
+region_table_dat = sar_by_region |> 
+    mutate(Region = stringr::str_remove_all(Region,
+                                              " Natural.*")) |> 
+    left_join(
+      sar_by_region |> 
+        mutate(Region = stringr::str_remove_all(Region,
+                                                " Natural.*")) |> 
+        tidyr::separate_longer_delim(all_info, delim = ', ') |> 
+        dplyr::count(Region, name = 'distinct_SAR') |> 
+        dplyr::mutate(distinct_SAR = replace_na(distinct_SAR, 0))
+    ) |>
+    dplyr::select(
+      Region,
+      `BCDC SAR` = all_info,
+      `BCDC # Records` = total_n,
+      `BCDC # Species` = distinct_SAR,
+      `Expert-ID SAR` = species_common_name_population,
+      Status = status,
+      `Major Watershed(s)` = major_watershed,
+      Threats = threats,
+      `Key Areas of Concern` = key_areas_of_concern
+    )
+
+DT::datatable(
+  region_table_dat,
+  options = list(
+    paging = TRUE,
+    pageLength = 5,
+    initComplete = JS(
+      "function(settings, json) {",
+      "$(this.api().table().header()).css({'font-size': '100%'});",
+      "}"))) |> DT::formatStyle(columns = names(region_table_dat), 
+                                fontSize = '100%',
+      ) |> 
+  DT::formatStyle(
+    columns = c(5:9),
+    backgroundColor = 'lightblue'
+  )
+```
+
+Note:
+
+1.  *BCDC = BC Data Catalogue*
+2.  *Expert-ID SAR = Aquatic species-at-risk identified by provincial subject matter expert*
+3.  *Grey cells in table are based on BCDC datasets, light blue cells based on subject matter expert*
+
+### District
+
+```{r data_table_district}
+district_table_dat = sar_by_district |> 
+    mutate(District = stringr::str_remove_all(District,
+                                              " Natural.*")) |> 
+    left_join(
+      sar_by_district |> 
+        mutate(District = stringr::str_remove_all(District,
+                                                " Natural.*")) |> 
+        tidyr::separate_longer_delim(all_info, delim = ', ') |> 
+        dplyr::count(District, name = 'distinct_SAR') |> 
+        dplyr::mutate(distinct_SAR = replace_na(distinct_SAR, 0))
+    ) |> 
+    dplyr::select(
+      District,
+      `BCDC SAR` = all_info,
+      `BCDC # Records` = total_n,
+      `BCDC # Species` = distinct_SAR,
+      `Expert-ID SAR` = species_common_name_population,
+      Status = status,
+      `Major Watershed(s)` = major_watershed,
+      Threats = threats,
+      `Key Areas of Concern` = key_areas_of_concern
+    )
+
+DT::datatable(
+  district_table_dat,
+  options = list(
+    paging = TRUE,
+    pageLength = 5#,
+    # initComplete = JS(
+    #   "function(settings, json) {",
+    #   "$(this.api().table().header()).css({'font-size': '100%'});
+    #   $(this.api().table().header()[3]).css({'background:lightblue': '100%'});",
+    #   "}")
+    )
+  ) |> DT::formatStyle(columns = names(district_table_dat), 
+                                fontSize = '100%',
+      ) |> 
+  DT::formatStyle(
+    columns = c(5:9),
+    backgroundColor = 'lightblue'
+  )
+```
