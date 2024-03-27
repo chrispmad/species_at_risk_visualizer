@@ -6,6 +6,9 @@ library(sf)
 library(leaflet)
 library(shinyWidgets)
 
+source('modules/leaflet_map_mod.R')
+source('modules/summary_boxes_mod.R')
+
 # Select which kind of boundaries to plot (regions or districts)
 shape_type_selector = shinyWidgets::pickerInput(
   'shape_type_input',
@@ -45,17 +48,7 @@ selected_boundary_card = card(
   theme_color = 'success'
 )
 
-number_unique_SAR_species_card = card(
-  p('Unique Aquatic SAR species\n(CDC and DFO SARA)'),
-  h3(textOutput('sar_unique_species')),
-  class = "bg-secondary"
-)
 
-sq_km_critical_habitat = card(
-  card_title('Critical Habitat'),
-  h3(uiOutput('km_2_crit_hab')),
-  class = "skyblue-box"
-)
 
 # card(
 #   card_title('Test'),
@@ -75,11 +68,7 @@ shape_selection_feedback = bslib::layout_columns(
 )
 
 # Summary card combo
-summary_cards = layout_column_wrap(
-  width = 1/2,
-  number_unique_SAR_species_card,
-  sq_km_critical_habitat
-)
+summary_cards = summary_boxes_mod_UI('summary_boxes')
 
 sidebar = sidebar(
   width = '30%',
@@ -92,19 +81,7 @@ sidebar = sidebar(
   summary_cards
 )
 
-main = tagList(
-  leafletOutput('my_leaf'),
-  div(id = 'loading_stuff',
-      div(
-        id = 'loading_fish',
-        class = 'swimming-fish'
-      ),
-      div(
-        p("Loading...",
-          class = 'loading_text')
-      )
-  )
-)
+main = leaflet_map_mod_UI('map')
 
 details = card(
   h5("Metadata and Description of Data"),

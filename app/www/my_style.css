@@ -8,14 +8,15 @@ body {
 
 .bc_logo {
   position:absolute;
-  top: -5%;
-  left: 83%;
+  top: -10%;
+  left: 80%;
   width: 35vh;
   height: 35vh;
   background: url('https://compass.gww.gov.bc.ca/wp-content/uploads/2021/03/wiw-white-text.svg');
   background-repeat: no-repeat;
   background-size: contain;"
 }
+
 .swimming-fish {
     position:absolute;
     width:15vh;
