@@ -4,13 +4,14 @@ summary_boxes_mod_UI <- function(id) {
   ns <- NS(id)
 
   number_unique_SAR_species_card = card(
-    p('Unique Aquatic SAR species\n(CDC and DFO SARA)'),
+    # p('Unique Aquatic SAR species\n(CDC and DFO SARA)'),
+    p('Aquatic SAR (CDC) and SARA-listed (DFO) species'),
     h3(textOutput(ns('sar_unique_species'))),
     class = "bg-secondary"
   )
 
   sq_km_critical_habitat = card(
-    card_title('Critical Habitat'),
+    card_title('DFO Critical Habitat'),
     h3(uiOutput(ns('km_2_crit_hab'))),
     class = "skyblue-box"
   )
@@ -31,32 +32,32 @@ summary_boxes_mod_Server <- function(id, sel_shape, sar_sp, dfo_sara_sp, crit_ha
 
       output$sar_unique_species = renderText({
         if(sel_shape() == 'Province'){
-          sar_output = sar_sp()$ENG_NAME
-          dfo_sara_output = dfo_sara_sp()$Common_Name_EN
+          sar_output = sar_sp()$eng_name
+          dfo_sara_output = dfo_sara_sp()$eng_name
         } else {
           if(shape_type_input() == 'nr_r'){
 
             sar_output = sar_sp() |>
               sf::st_drop_geometry() |>
               dplyr::filter(stringr::str_detect(REGION_NAME,sel_shape())) |>
-              dplyr::pull(ENG_NAME)
+              dplyr::pull(eng_name)
 
             dfo_sara_output = dfo_sara_sp() |>
               sf::st_drop_geometry() |>
               dplyr::filter(stringr::str_detect(REGION_NAME,sel_shape())) |>
-              dplyr::pull(Common_Name_EN)
+              dplyr::pull(eng_name)
 
           } else {
 
             sar_output = sar_sp() |>
               sf::st_drop_geometry() |>
               dplyr::filter(stringr::str_detect(DISTRICT_NAME,sel_shape())) |>
-              dplyr::pull(ENG_NAME)
+              dplyr::pull(eng_name)
 
             dfo_sara_output = dfo_sara_sp() |>
               sf::st_drop_geometry() |>
               dplyr::filter(stringr::str_detect(DISTRICT_NAME,sel_shape())) |>
-              dplyr::pull(Common_Name_EN)
+              dplyr::pull(eng_name)
 
           }
         }

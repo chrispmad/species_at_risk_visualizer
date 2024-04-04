@@ -27,7 +27,11 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
       # Fill opacity for polygons added to map initially; NOT responsive to species selector.
       bg_opacity = 0.3
       # Fill opacity for polygons of SELECTED SPECIES
-      fg_opacity = 0.8
+      fg_opacity = 1
+
+      map_click_coords = reactive({
+        input$my_leaf_click
+      })
 
       # Start leaflet map.
       output$my_leaf = renderLeaflet({
@@ -44,7 +48,7 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
             fillOpacity = bg_opacity,
             weight = 1.5,
             group = 'CDC Aquatic SAR',
-            label = ~paste0(ENG_NAME),
+            label = ~eng_name_label,
             options = pathOptions(pane = 'CDC-Aquatic-SAR', id = 'cdc_aquatic_sar_layer')
           ) |>
           addPolygons(
@@ -54,28 +58,28 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
             fillOpacity = bg_opacity,
             weight = 1.5,
             group = 'DFO SARA',
-            label = ~paste0(Common_Name_EN,' (',SARA_Status,')'),
+            label = ~paste0(eng_name,' (',SARA_Status,')'),
             options = pathOptions(pane = 'DFO-SARA', id = 'dfo_sara_layer')
           ) |>
           addPolygons(
             data = crit_hab_bc,
-            fillColor = 'lightblue',
-            color = 'lightblue',
+            fillColor = 'darkblue',
+            color = 'darkblue',
             fillOpacity = bg_opacity,
             weight = 1.5,
-            group = 'Critical Habitat',
-            label = ~paste0(Common_Name_EN,' (',Population_EN,')'),
+            group = 'DFO Critical Habitat',
+            label = ~paste0(eng_name,' (',Population_EN,')'),
             options = pathOptions(pane = 'Critical-Habitat', id = 'critical_habitat_layer')
           ) |>
           addLegend(title = 'Species-at-Risk',
                     labels = c('CDC Aquatic SAR',
                                'DFO SARA',
-                               'Critical Habitat'),
-                    colors = c('orange','purple','lightblue')) |>
+                               'DFO Critical Habitat'),
+                    colors = c('orange','purple','darkblue')) |>
           addLayersControl('bottomleft',
-                           baseGroups = c('OpenStreetMap','CartoDB'),
+                           baseGroups = c('CartoDB','OpenStreetMap'),
                            overlayGroups = c("Boundaries","CDC Aquatic SAR",
-                                             "DFO SARA","Critical Habitat"),
+                                             "DFO SARA","DFO Critical Habitat"),
                            options = layersControlOptions(collapsed = FALSE)) |>
           addScaleBar('bottomright') |>
           leaflet.extras::addResetMapButton()
@@ -84,15 +88,6 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
 
         l
       })
-
-      # # Fire up the short javascript I wrote to prevent the 3 SAR layers from being clickable,
-      # # but still showing their labels.
-      # observeEvent(
-      #   c(input$my_leaf_cdc_aquatic_sar_layer_click,
-      #     input$my_leaf_dfo_sara_layer_click,
-      #     input$my_leaf_critical_habitat_layer_click), {
-      #       session$sendCustomMessage("disableLayerBClickPropagation")
-      #     })
 
       observe({
         # Fire up the leaflet proxy to add things quickly to the map,
@@ -159,20 +154,22 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
                         lat2 = hl_bbox[4])
         }
 
+        highlight_colour = 'red'
+
         # If one or more specific species have been chosen,
         # add those to the map via leaflet proxy.
-        if(!is.null(species_select_input())){
+        if(species_select_input() != 'None'){
           if(nrow(sar_sp()) > 0){
             l = l |>
               clearGroup('CDC Aquatic SAR highlight') |>
               addPolygons(
                 data = sar_sp(),
-                fillColor = 'orange',
-                color = 'orange',
+                fillColor = highlight_colour,
+                color = highlight_colour,
                 fillOpacity = fg_opacity,
                 weight = 1.5,
                 group = 'CDC Aquatic SAR highlight',
-                label = ~paste0(ENG_NAME),
+                label = ~eng_name_label,
                 options = pathOptions(pane = 'CDC-Aquatic-SAR', id = 'cdc_aquatic_sar_layer')
               )
           }
@@ -181,12 +178,12 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
               clearGroup('DFO SARA highlight') |>
               addPolygons(
                 data = dfo_sara_sp(),
-                fillColor = 'purple',
-                color = 'purple',
+                fillColor = highlight_colour,
+                color = highlight_colour,
                 fillOpacity = fg_opacity,
                 weight = 1.5,
                 group = 'DFO SARA highlight',
-                label = ~paste0(Common_Name_EN,' (',SARA_Status,')'),
+                label = ~paste0(eng_name,' (',SARA_Status,')'),
                 options = pathOptions(pane = 'DFO-SARA', id = 'dfo_sara_layer')
               )
           }
@@ -195,12 +192,12 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
               clearGroup('Critical Habitat highlight') |>
               addPolygons(
                 data = crit_hab_bc_sp(),
-                fillColor = 'lightblue',
-                color = 'lightblue',
+                fillColor = highlight_colour,
+                color = highlight_colour,
                 fillOpacity = fg_opacity,
                 weight = 1.5,
                 group = 'Critical Habitat highlight',
-                label = ~paste0(Common_Name_EN,' (',Population_EN,')'),
+                label = ~paste0(eng_name,' (',Population_EN,')'),
                 options = pathOptions(pane = 'Critical-Habitat', id = 'critical_habitat_layer')
               )
           }
@@ -210,7 +207,12 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
 
       # Return any click events on the leaflet map to inform other UI elements
       # outside of this module.
-      return(reactive(input$my_leaf_shape_click))
+      return(
+        list(
+          clicked_shape = reactive(input$my_leaf_shape_click),
+          map_click_coords = map_click_coords
+          )
+      )
     }
   )
 }

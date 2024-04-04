@@ -20,6 +20,7 @@ shape_type_selector = shinyWidgets::pickerInput(
     style = "btn-primary")
   )
 
+# Select ONE of the shapes
 shape_specific_selector = shinyWidgets::pickerInput(
   'shape_select_input',
   '',
@@ -32,21 +33,31 @@ shape_specific_selector = shinyWidgets::pickerInput(
 species_selector = shinyWidgets::pickerInput(
   'species_select_input',
   '',
-  choices = c("All"),
+  choices = 'None',
   options = list(
     style = 'btn-success',
     size = 6,
-    `actions-box` = TRUE,
     `live-search` = TRUE
   ),
-  multiple = T
+  multiple = F
 )
 
-# Summary cards
-selected_boundary_card = card(
-  textOutput('selected_boundary'),
-  theme_color = 'success'
+species_selector_bit = bslib::layout_columns(
+  col_widths = c(9,3),
+  species_selector,
+  actionButton(
+    'reset_species_selection',
+    'Reset',
+    class = 'btn-success',
+    style = 'margin-top:3.5vh;'
+  )
 )
+
+# # Summary cards
+# selected_boundary_card = card(
+#   textOutput('selected_boundary'),
+#   theme_color = 'success'
+# )
 
 
 
@@ -72,8 +83,8 @@ summary_cards = summary_boxes_mod_UI('summary_boxes')
 
 sidebar = sidebar(
   width = '30%',
-  h4('Species Selection', style = 'margin-top:-2rem;margin-bottom:-2rem;align-self:center;'),
-  species_selector,
+  h4('Species Highlight', style = 'margin-top:-2rem;margin-bottom:-2rem;align-self:center;'),
+  species_selector_bit,
   h4('Spatial Scope', style = 'margin-bottom:-0.5rem;align-self:center;'),
   shape_type_selector,
   shape_selection_feedback,
@@ -89,7 +100,7 @@ details = card(
   p(HTML("This dataset comes from the <a href='https://catalogue.data.gov.bc.ca/dataset/species-and-ecosystems-at-risk-publicly-available-occurrences-cdc'>BC Data Catalogue</a>. It is maintained up-to-date as data are added to the CDC layer")),
   p("2. DFO SARA ('Distributions')"),
   p(HTML("This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/e0fabad5-9379-4077-87b9-5705f28c490b'>Open Canada</a> in January of 2024 to download federal-level data for species occurrences of SARA-listed species.")),
-  p("3. Critical Habitat"),
+  p("3. DFO Critical Habitat"),
   p(HTML("This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/db177a8c-5d7d-49eb-8290-31e6a45d786c'>Open Canada</a> in January of 2024 to download federal-level critical habitat for SARA-listed species."))
 )
 
