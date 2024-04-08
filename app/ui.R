@@ -8,6 +8,7 @@ library(shinyWidgets)
 
 source('modules/leaflet_map_mod.R')
 source('modules/summary_boxes_mod.R')
+source('www/utils/walkthough_content.R')
 
 # Select which kind of boundaries to plot (regions or districts)
 shape_type_selector = shinyWidgets::pickerInput(
@@ -53,20 +54,6 @@ species_selector_bit = bslib::layout_columns(
   )
 )
 
-# # Summary cards
-# selected_boundary_card = card(
-#   textOutput('selected_boundary'),
-#   theme_color = 'success'
-# )
-
-
-
-# card(
-#   card_title('Test'),
-#   HTML('<h5>Hello<sup>2</sup></h5>'),
-#   class = 'bg-info'
-# )
-
 reset_shape_selection_button = actionButton('reset_shape_sel','Reset',class = 'btn-primary')
 
 shape_selection_feedback = bslib::layout_columns(
@@ -95,17 +82,16 @@ sidebar = sidebar(
 main = leaflet_map_mod_UI('map')
 
 details = card(
-  h5("Metadata and Description of Data"),
-  p("1. CDC Aquatic SAR"),
-  p(HTML("This dataset comes from the <a href='https://catalogue.data.gov.bc.ca/dataset/species-and-ecosystems-at-risk-publicly-available-occurrences-cdc'>BC Data Catalogue</a>. It is maintained up-to-date as data are added to the CDC layer")),
-  p("2. DFO SARA ('Distributions')"),
-  p(HTML("This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/e0fabad5-9379-4077-87b9-5705f28c490b'>Open Canada</a> in January of 2024 to download federal-level data for species occurrences of SARA-listed species.")),
-  p("3. DFO Critical Habitat"),
-  p(HTML("This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/db177a8c-5d7d-49eb-8290-31e6a45d786c'>Open Canada</a> in January of 2024 to download federal-level critical habitat for SARA-listed species."))
+  h3("Metadata and Description of Data"),
+  h5("Conservation Data Center Aquatic SAR"),
+  p(HTML("1. This dataset comes from the <a href='https://catalogue.data.gov.bc.ca/dataset/species-and-ecosystems-at-risk-publicly-available-occurrences-cdc'>BC Data Catalogue</a>. It is maintained up-to-date as data are added to the CDC layer")),
+  h5("Department of Fisheries and Oceans Canada (DFO) Species-at-risk-act listed species"),
+  p(HTML("1. This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/e0fabad5-9379-4077-87b9-5705f28c490b'>Open Canada</a> in January of 2024 to download federal-level data for species occurrences of SARA-listed species.")),
+  p(HTML("2. This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/db177a8c-5d7d-49eb-8290-31e6a45d786c'>Open Canada</a> in January of 2024 to download federal-level critical habitat for SARA-listed species."))
 )
 
 ui = page_navbar(
-  title = 'Species-at-Risk Visualizer',
+  title = 'Species-at-Risk Data Visualizer',
   includeCSS('www/my_style.css'),
   includeScript('www/my_js.js'),
   shinyjs::useShinyjs(),
@@ -115,10 +101,18 @@ ui = page_navbar(
   nav_panel(
     title = 'Tool',
     main,
+    walkthrough_boxes
   ),
   nav_panel(
     title = "Details",
     details
+  ),
+  nav_item(
+    actionButton(
+      'click_instr',
+      "Instructions",
+      class = 'instructions_button'
+    )
   ),
   nav_item(
     div(

@@ -66,6 +66,7 @@ server <- function(input, output, session) {
       sci_name == 'Gasterosteus' ~ 'Stickleback',
       T ~ eng_name
     )) |>
+    dplyr::filter(eng_name != '') |>
     dplyr::mutate(eng_name = stringr::str_squish(eng_name),
                   sci_name = stringr::str_squish(sci_name))
 
@@ -261,5 +262,47 @@ server <- function(input, output, session) {
 
   map_click_coords = leaflet_mod_output$map_click_coords
 
+  # Walkthrough instructions
+  observeEvent(input$click_instr, {
+    shinyjs::show(id = 'walkthrough-1')
+  })
+
+  # If the user clicks 'Close', hide all the walkthrough elements
+  observeEvent(c(input$close_tips,input$close_tips_2,input$close_tips_3,input$close_tips_4), {
+    shinyjs::hide(id = 'walkthrough-1')
+    shinyjs::hide(id = 'walkthrough-2')
+    shinyjs::hide(id = 'walkthrough-3')
+    shinyjs::hide(id = 'walkthrough-4')
+  })
+
+  observeEvent(input$wt_1_to_2, {
+    shinyjs::hide(id = 'walkthrough-1')
+    shinyjs::show(id = 'walkthrough-2')
+  })
+
+  observeEvent(input$wt_2_to_3, {
+    shinyjs::hide(id = 'walkthrough-2')
+    shinyjs::show(id = 'walkthrough-3')
+  })
+
+  observeEvent(input$wt_2_to_1, {
+    shinyjs::hide(id = 'walkthrough-2')
+    shinyjs::show(id = 'walkthrough-1')
+  })
+
+  observeEvent(input$wt_3_to_4, {
+    shinyjs::hide(id = 'walkthrough-3')
+    shinyjs::show(id = 'walkthrough-4')
+  })
+
+  observeEvent(input$wt_3_to_2, {
+    shinyjs::hide(id = 'walkthrough-3')
+    shinyjs::show(id = 'walkthrough-2')
+  })
+
+  observeEvent(input$wt_4_to_3, {
+    shinyjs::hide(id = 'walkthrough-4')
+    shinyjs::show(id = 'walkthrough-3')
+  })
 }
 

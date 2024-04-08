@@ -84,7 +84,7 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
           addScaleBar('bottomright') |>
           leaflet.extras::addResetMapButton()
 
-        shinyjs::toggle(id = 'loading_stuff', anim = TRUE, time = 8, animType = 'fade')
+        shinyjs::toggle(id = 'loading_stuff', anim = TRUE, time = 10, animType = 'fade')
 
         l
       })
