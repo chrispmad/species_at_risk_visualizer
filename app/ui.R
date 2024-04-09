@@ -75,19 +75,20 @@ sidebar = sidebar(
   h4('Spatial Scope', style = 'margin-bottom:-0.5rem;align-self:center;'),
   shape_type_selector,
   shape_selection_feedback,
-  h4('Summaries', style = 'align-self:center;'),
+  h4('Summaries', style = 'align-self:center;margin-top:-1.5rem;margin-bottom:-0.5rem;'),
   summary_cards
 )
 
 main = leaflet_map_mod_UI('map')
 
-details = card(
+metadata = card(
   h3("Metadata and Description of Data"),
   h5("Conservation Data Center Aquatic SAR"),
   p(HTML("1. This dataset comes from the <a href='https://catalogue.data.gov.bc.ca/dataset/species-and-ecosystems-at-risk-publicly-available-occurrences-cdc'>BC Data Catalogue</a>. It is maintained up-to-date as data are added to the CDC layer")),
   h5("Department of Fisheries and Oceans Canada (DFO) Species-at-risk-act listed species"),
-  p(HTML("1. This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/e0fabad5-9379-4077-87b9-5705f28c490b'>Open Canada</a> in January of 2024 to download federal-level data for species occurrences of SARA-listed species.")),
-  p(HTML("2. This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/db177a8c-5d7d-49eb-8290-31e6a45d786c'>Open Canada</a> in January of 2024 to download federal-level critical habitat for SARA-listed species."))
+  p(HTML("1. Occurrence Data: this dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/e0fabad5-9379-4077-87b9-5705f28c490b'>Open Canada</a> in January of 2024 to download federal-level data for species occurrences of SARA-listed species.")),
+  p(HTML("2. Critical Habitat Polygons: This dataset was accessed from <a href='https://open.canada.ca/data/en/dataset/db177a8c-5d7d-49eb-8290-31e6a45d786c'>Open Canada</a> in January of 2024 to download federal-level critical habitat polygons for SARA-listed species.")),
+  p("\nNote: DFO Critical Habitat for SARA-listed species displayed in this tool is only a subset of such habitat: habitat characteristics have been identified for many species (e.g. riffles in streams) while spatially delineated polygons may not yet exist.")
 )
 
 ui = page_navbar(
@@ -104,8 +105,8 @@ ui = page_navbar(
     walkthrough_boxes
   ),
   nav_panel(
-    title = "Details",
-    details
+    title = "Metadata",
+    metadata
   ),
   nav_item(
     actionButton(
@@ -113,6 +114,12 @@ ui = page_navbar(
       "Instructions",
       class = 'instructions_button'
     )
+  ),
+  nav_item(
+    p(paste0('(Data last updated on ',
+             format(file.mtime('www/federal_critical_habitat_just_BC.gpkg'),'%d-%b-%Y'),
+             ')'),
+      style = 'position:relative; top: 1vh; left:40vh; color:white;')
   ),
   nav_item(
     div(

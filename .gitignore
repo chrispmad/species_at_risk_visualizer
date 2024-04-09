@@ -12,3 +12,4 @@ alternate_app_datasets/**
 *csv
 *png.jpg
 *png.png
+app/rsconnect/*

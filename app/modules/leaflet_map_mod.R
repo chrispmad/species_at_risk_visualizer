@@ -147,11 +147,17 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
               group = 'Boundaries',
               weight = 3,
               options = pathOptions(clickable = F)
-            ) |>
-            flyToBounds(lng1 = hl_bbox[1],
-                        lat1 = hl_bbox[2],
-                        lng2 = hl_bbox[3],
-                        lat2 = hl_bbox[4])
+            )
+
+          # # If the user has already zoomed the map in to zoom level 7 or greater,
+          # # don't fly the map out to the polygon borders.
+          # if(input$my_leaf_zoom <= 7){
+          #   l = l |>
+          #     flyToBounds(lng1 = hl_bbox[1],
+          #                 lat1 = hl_bbox[2],
+          #                 lng2 = hl_bbox[3],
+          #                 lat2 = hl_bbox[4])
+          # }
         }
 
         highlight_colour = 'red'
