@@ -41,6 +41,7 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
           addMapPane('CDC-Aquatic-SAR', zIndex = 300) |>
           addMapPane('DFO-SARA', zIndex = 400) |>
           addMapPane('Critical-Habitat', zIndex = 500) |>
+          addMapPane('Highlight-Pane', zIndex = 600) |>
           addPolygons(
             data = sar,
             fillColor = 'orange',
@@ -176,7 +177,7 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
                 weight = 1.5,
                 group = 'CDC Aquatic SAR highlight',
                 label = ~eng_name_label,
-                options = pathOptions(pane = 'CDC-Aquatic-SAR', id = 'cdc_aquatic_sar_layer')
+                options = pathOptions(pane = 'Highlight-Pane', id = 'cdc_aquatic_sar_layer')
               )
           }
           if(nrow(dfo_sara_sp()) > 0){
@@ -190,7 +191,7 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
                 weight = 1.5,
                 group = 'DFO SARA highlight',
                 label = ~paste0(eng_name,' (',SARA_Status,')'),
-                options = pathOptions(pane = 'DFO-SARA', id = 'dfo_sara_layer')
+                options = pathOptions(pane = 'Highlight-Pane', id = 'dfo_sara_layer')
               )
           }
           if(nrow(crit_hab_bc_sp()) > 0){
@@ -204,7 +205,7 @@ leaflet_map_mod_Server <- function(id, sar, dfo_sara, crit_hab_bc,
                 weight = 1.5,
                 group = 'Critical Habitat highlight',
                 label = ~paste0(eng_name,' (',Population_EN,')'),
-                options = pathOptions(pane = 'Critical-Habitat', id = 'critical_habitat_layer')
+                options = pathOptions(pane = 'Highlight-Pane', id = 'critical_habitat_layer')
               )
           }
         }

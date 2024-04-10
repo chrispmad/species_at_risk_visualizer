@@ -111,10 +111,14 @@ server <- function(input, output, session) {
   })
 
   observe({
+
+    all_choices = c("Province",shapes()$ADMIN_NAME)
+    names(all_choices) <- stringr::str_remove_all(all_choices, ' Natural.*')
+
     shinyWidgets::updatePickerInput(
       session = session,
       inputId = 'shape_select_input',
-      choices = c("Province",shapes()$ADMIN_NAME),
+      choices = all_choices,
       selected = shapes()$ADMIN_NAME
     )
   })

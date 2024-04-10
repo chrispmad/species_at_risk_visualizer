@@ -111,13 +111,14 @@ ui = page_navbar(
   nav_item(
     actionButton(
       'click_instr',
-      "Instructions",
+      "How to Use Tool",
       class = 'instructions_button'
     )
   ),
   nav_item(
-    p(paste0('(Data last updated on ',
-             format(file.mtime('www/federal_critical_habitat_just_BC.gpkg'),'%d-%b-%Y'),
+    p(paste0('(Data last updated in ',
+             'Jan. 2024',
+             # format(file.mtime('www/federal_critical_habitat_just_BC.gpkg'),'%d-%b-%Y'),
              ')'),
       style = 'position:relative; top: 1vh; left:40vh; color:white;')
   ),
