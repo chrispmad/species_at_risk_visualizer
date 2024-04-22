@@ -23,7 +23,7 @@ summary_boxes_mod_UI <- function(id) {
     sq_km_critical_habitat
   ),
     bslib::card(
-      p('Species List', style = 'font-size:1.1rem;'),
+      p('Species List', style = 'font-size:1.1rem;text-align:center;margin-bottom:-2rem;'),
       p(textOutput(ns('sar_unique_species_list')),
         style = 'font-size:large;'),
       full_screen = TRUE,

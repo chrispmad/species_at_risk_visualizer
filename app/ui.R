@@ -65,6 +65,77 @@ shape_selection_feedback = bslib::layout_columns(
   reset_shape_selection_button
 )
 
+# Download buttons
+cdc_occ_data_xlsx_download_button = downloadButton(
+  'cdc_occ_data_xlsx_download_button',
+  shiny::HTML('Spreadsheet'),
+  style = 'padding:10px;display:grid;height:9vh;',
+  class = "btn-primary"
+)
+
+cdc_occ_data_gpkg_download_button = downloadButton(
+  'cdc_occ_data_gpkg_download_button',
+  '\n.GPKG',
+  style = 'padding:10px;display:grid;height:9vh;',
+  class = "btn-success"
+)
+
+dfo_occ_data_xlsx_download_button = downloadButton(
+  'dfo_occ_data_xlsx_download_button',
+  shiny::HTML('Spreadsheet'),
+  style = 'padding:10px;display:grid;height:9vh;',
+  class = "btn-primary"
+)
+
+dfo_occ_data_gpkg_download_button = downloadButton(
+  'dfo_occ_data_gpkg_download_button',
+  '\n.GPKG',
+  style = 'padding:10px;display:grid;height:9vh;',
+  class = "btn-success"
+)
+
+dfo_crithab_xlsx_download_button = downloadButton(
+  'dfo_crithab_xlsx_download_button',
+  shiny::HTML('Spreadsheet'),
+  style = 'padding:10px;display:grid;height:9vh;',
+  class = "btn-primary"
+)
+
+dfo_crithab_gpkg_download_button = downloadButton(
+  'dfo_crithab_gpkg_download_button',
+  '\n.GPKG',
+  style = 'padding:10px;display:grid;height:9vh;',
+  class = "btn-success"
+)
+
+download_buttons = tagList(
+  h5("Data Downloads", style = 'margin-bottom:-1rem;'),
+  p("CDC", style = 'margin-bottom:-0.75rem;text-align:center;font-size:large;'),
+  # cdc_occ_data_xlsx_download_button,
+  # cdc_occ_data_gpkg_download_button,
+  layout_column_wrap(
+    1/2,
+    cdc_occ_data_xlsx_download_button,
+    cdc_occ_data_gpkg_download_button
+  ),
+  p("DFO Occurrence Data", style = 'margin-bottom:-0.75rem;text-align:center;font-size:large;'),
+  # dfo_occ_data_xlsx_download_button,
+  # dfo_occ_data_gpkg_download_button,
+  layout_column_wrap(
+    1/2,
+    dfo_occ_data_xlsx_download_button,
+    dfo_occ_data_gpkg_download_button
+  ),
+  p("DFO Critical Habitat", style = 'margin-bottom:-0.75rem;text-align:center;font-size:large;'),
+  # dfo_crithab_xlsx_download_button,
+  # dfo_crithab_gpkg_download_button
+  layout_column_wrap(
+    1/2,
+    dfo_crithab_xlsx_download_button,
+    dfo_crithab_gpkg_download_button
+  )
+)
+
 # Summary card combo
 summary_cards = summary_boxes_mod_UI('summary_boxes')
 
@@ -76,7 +147,8 @@ sidebar = sidebar(
   shape_type_selector,
   shape_selection_feedback,
   h4('Summaries', style = 'align-self:center;margin-top:-1.5rem;margin-bottom:-0.5rem;'),
-  summary_cards
+  summary_cards,
+  download_buttons
 )
 
 main = leaflet_map_mod_UI('map')

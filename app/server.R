@@ -308,5 +308,61 @@ server <- function(input, output, session) {
     shinyjs::hide(id = 'walkthrough-4')
     shinyjs::show(id = 'walkthrough-3')
   })
+
+  # Download button logic
+
+  output$cdc_occ_data_xlsx_download_button = shiny::downloadHandler(
+    filename = function() {
+      paste0("Provincial_ConservationDataCentre_SAR_Occurrence_Data_",stringr::str_replace_all(Sys.Date(),"-","_"),".xlsx")
+    },
+    content = function(file) {
+      openxlsx::write.xlsx(sar |> sf::st_drop_geometry(), file)
+    }
+  )
+
+  output$cdc_occ_data_gpkg_download_button = shiny::downloadHandler(
+    filename = function() {
+      paste0("Provincial_ConservationDataCentre_SAR_Occurrence_Data_",stringr::str_replace_all(Sys.Date(),"-","_"),".gpkg")
+    },
+    content = function(file) {
+      sf::write_sf(sar, file)
+    }
+  )
+
+  output$dfo_occ_data_xlsx_download_button = shiny::downloadHandler(
+    filename = function() {
+      paste0("Federal_DFO_SARA_Occurrence_Data_",stringr::str_replace_all(Sys.Date(),"-","_"),".xlsx")
+    },
+    content = function(file) {
+      openxlsx::write.xlsx(dfo_sara |> sf::st_drop_geometry(), file)
+    }
+  )
+
+  output$dfo_occ_data_gpkg_download_button = shiny::downloadHandler(
+    filename = function() {
+      paste0("Federal_DFO_SARA_Occurrence_Data_",stringr::str_replace_all(Sys.Date(),"-","_"),".gpkg")
+    },
+    content = function(file) {
+      sf::write_sf(dfo_sara, file)
+    }
+  )
+
+  output$dfo_crithab_xlsx_download_button = shiny::downloadHandler(
+    filename = function() {
+      paste0("Federal_DFO_SARA_CriticalHabitat_",stringr::str_replace_all(Sys.Date(),"-","_"),".xlsx")
+    },
+    content = function(file) {
+      openxlsx::write.xlsx(crit_hab_bc |> sf::st_drop_geometry(), file)
+    }
+  )
+
+  output$dfo_crithab_gpkg_download_button = shiny::downloadHandler(
+    filename = function() {
+      paste0("Federal_DFO_SARA_CriticalHabitat_",stringr::str_replace_all(Sys.Date(),"-","_"),".gpkg")
+    },
+    content = function(file) {
+      sf::write_sf(crit_hab_bc, file)
+    }
+  )
 }
 
