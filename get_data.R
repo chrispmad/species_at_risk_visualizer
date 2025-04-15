@@ -67,6 +67,7 @@ if(!file.exists('app/www/boundaries/nr_regions.gpkg')){
 # DFO Occurrence Data and Critical Habitat for SARA-listed species
 # Note: this is 2 separate datasets.
 if(!file.exists('app/www/federal_critical_habitat_just_BC.gpkg')){
+
   crit_hab = sf::st_read(paste0(onedrive_path,'federal_critical_habitat.gpkg'))
 
   ensure_multipolygons <- function(X) {
