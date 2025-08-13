@@ -12,7 +12,7 @@ onedrive_path = paste0(path_to_user,"/OneDrive - Government of BC/data/CNF/")
 
 # Species at Risk - Publically available
 if(!file.exists('app/www/species_ecosystems_at_risk_publically_available_no_insects.gpkg')){
-  sp = read_sf('W:/CMadsen/Projects/SpeciesAtRisk/species_ecosystems_at_risk_publically_available.shp')
+  sp = read_sf('//SFP.IDIR.BCGOV/S140/S40203/WFC AEB/General/2 SCIENCE - Invasives/AIS_R_Projects/CMadsen_Wdrive/Projects/SpeciesAtRisk/species_ecosystems_at_risk_publically_available.shp')
 
   sp = st_transform(sp, 4326)
 
